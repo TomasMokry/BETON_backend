@@ -1,3 +1,5 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
+    url: ${MYSQL_URL}
+    username: ${MYSQLUSER}
+    password: ${MYSQLPASSWORD}
