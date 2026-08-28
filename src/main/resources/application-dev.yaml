@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/be_ton?createDatabaseIfNotExist=true
+    username: root
+    password: Kolemjdouci2026
+  jpa:
+    show-sql: true
