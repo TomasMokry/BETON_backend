@@ -122,17 +122,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>10.15.0</version>
-                <configuration>
-                    <url>jdbc:mysql://localhost:3306/be_ton?createDatabaseIfNotExist=true</url>
-                    <user>root</user>
-                    <password>Kolemjdouci2026</password>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
