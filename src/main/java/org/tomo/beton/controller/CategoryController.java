@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@CrossOrigin(origins = "https://beton-hazel.vercel.app")
+@CrossOrigin(origins = "https://beton-pos.vercel.app")
 @RequestMapping("/categories")
 public class CategoryController {
 

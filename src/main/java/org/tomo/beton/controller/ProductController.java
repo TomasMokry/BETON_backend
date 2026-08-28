@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/products")
-@CrossOrigin(origins = "https://beton-hazel.vercel.app")
+@CrossOrigin(origins = "https://beton-pos.vercel.app")
 public class ProductController {
 
     private final ProductRepository productRepository;
