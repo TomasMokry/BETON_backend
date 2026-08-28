@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/orders")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://beton-hazel.vercel.app")
 public class OrderController {
     private final OrderService orderService;
 

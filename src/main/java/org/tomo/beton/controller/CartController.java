@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/carts")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://beton-hazel.vercel.app")
 public class CartController {
     private final CartService cartService;
 

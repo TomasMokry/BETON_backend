@@ -16,7 +16,7 @@ import org.tomo.beton.service.CheckoutService;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/checkout")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://beton-hazel.vercel.app")
 public class CheckoutController {
 
     private final CheckoutService checkoutService;
