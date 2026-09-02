@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(c -> c
                         .requestMatchers("/orders").permitAll()
+                        .requestMatchers("/products").permitAll()
                         .requestMatchers("/checkout").permitAll()
                         .requestMatchers("/categories").permitAll()
                         .requestMatchers("/carts").permitAll()
