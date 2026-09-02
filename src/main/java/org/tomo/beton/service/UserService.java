@@ -2,6 +2,7 @@ package org.tomo.beton.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.tomo.beton.dtos.*;
 import org.tomo.beton.excetions.DuplicateUserException;
@@ -17,6 +18,7 @@ import java.util.Set;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public Iterable<UserDto> getAllUsers(String sortBy) {
         if (!Set.of("name", "email").contains(sortBy))
@@ -39,7 +41,7 @@ public class UserService {
         }
 
         var user = userMapper.toEntity(request);
-        user.setPassword(user.getPassword());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         userRepository.save(user);
 
