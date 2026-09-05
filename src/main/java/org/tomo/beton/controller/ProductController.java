@@ -1,5 +1,6 @@
 package org.tomo.beton.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,6 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/products")
-@CrossOrigin(origins = "https://beton-pos.vercel.app")
 public class ProductController {
 
     private final ProductRepository productRepository;
