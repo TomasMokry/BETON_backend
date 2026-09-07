@@ -9,3 +9,10 @@ spring:
     secret: ${JWT_SECRET}
     accessTokenExpiration: 900 # 15m
     refreshTokenExpiration: 604800 # 7d
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - metrics
