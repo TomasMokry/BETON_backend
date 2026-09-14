@@ -1,10 +1,11 @@
 package org.tomo.beton.controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -42,12 +43,14 @@ public class AuthController {
         var accessToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
-        var cookie = new Cookie("refreshToken", refreshToken.toString());
-        cookie.setHttpOnly(true);
-        cookie.setPath("/auth/refresh");
-        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
-        cookie.setSecure(true);
-        response.addCookie(cookie);
+        var cookie = ResponseCookie.from("refreshToken", refreshToken.toString())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/auth/refresh")
+                .maxAge(jwtConfig.getRefreshTokenExpiration())
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
@@ -68,13 +71,14 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response){
-        Cookie cookie = new Cookie("refreshToken", null);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/auth/refresh");
-        cookie.setMaxAge(0);
-        cookie.setSecure(false);
-
-        response.addCookie(cookie);
+        var cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/auth/refresh")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok().build();
     }
