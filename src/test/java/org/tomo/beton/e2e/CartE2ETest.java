@@ -87,6 +87,7 @@ class CartE2ETest extends AbstractE2ETest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.product.id").value(vase.getId()))
                 .andExpect(jsonPath("$.product.name").value("Vase"))
+                .andExpect(jsonPath("$.product.stock").value(3))
                 .andExpect(jsonPath("$.quantity").value(1))
                 .andExpect(jsonPath("$.totalPrice").value(100.00));
     }

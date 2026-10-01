@@ -4,8 +4,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.tomo.beton.dtos.CartDto;
 import org.tomo.beton.dtos.CartItemDto;
+import org.tomo.beton.dtos.CartProductDto;
 import org.tomo.beton.entities.Cart;
 import org.tomo.beton.entities.CartItem;
+import org.tomo.beton.entities.Product;
 
 @Mapper(
         componentModel = "spring"
@@ -20,4 +22,7 @@ public interface CartMapper {
     @Mapping(target = "subtotalPrice", expression = "java(cartItem.getSubtotalPrice())")
     @Mapping(target = "totalPrice", expression = "java(cartItem.getTotalPrice())")
     CartItemDto toDto(CartItem cartItem);
+
+    @Mapping(target = "stock", source = "amount")
+    CartProductDto toDto(Product product);
 }
