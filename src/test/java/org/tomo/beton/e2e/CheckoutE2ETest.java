@@ -8,6 +8,7 @@ import org.tomo.beton.dtos.AddItemToCartRequest;
 import org.tomo.beton.dtos.CheckoutRequest;
 import org.tomo.beton.dtos.PaymentMethod;
 import org.tomo.beton.dtos.Role;
+import org.tomo.beton.dtos.UpdateDiscountRequest;
 import org.tomo.beton.entities.Product;
 import org.tomo.beton.support.AbstractE2ETest;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,6 +52,43 @@ class CheckoutE2ETest extends AbstractE2ETest {
         request.setCartId(cartId == null ? null : UUID.fromString(cartId));
         request.setPaymentMethod("CARD");
         return json(request);
+    }
+
+    private void setDiscount(String path, int percent) throws Exception {
+        var request = new UpdateDiscountRequest();
+        request.setDiscountPercent(percent);
+        mockMvc.perform(put(path)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void checkout_storesDiscountsOnOrderAndResetsCartDiscount() throws Exception {
+        var cartId = createCart();
+        addItem(cartId, vase.getId());
+        addItem(cartId, vase.getId());
+        setDiscount("/carts/" + cartId + "/items/" + vase.getId() + "/discount", 10);
+        setDiscount("/carts/" + cartId + "/discount", 5);
+
+        var response = mockMvc.perform(post("/checkout")
+                        .with(bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(checkoutBody(cartId)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        Integer orderId = JsonPath.read(response, "$.orderId");
+        var order = orderRepository.getOrderWithItems(orderId.longValue()).orElseThrow();
+        assertThat(order.getSubtotalPrice()).isEqualByComparingTo("180.00");
+        assertThat(order.getDiscountPercent()).isEqualTo(5);
+        assertThat(order.getTotalPrice()).isEqualByComparingTo("171.00");
+        var item = order.getItems().iterator().next();
+        assertThat(item.getDiscountPercent()).isEqualTo(10);
+        assertThat(item.getTotalPrice()).isEqualByComparingTo("180.00");
+
+        mockMvc.perform(get("/carts/" + cartId))
+                .andExpect(jsonPath("$.discountPercent").value(0));
     }
 
     @Test

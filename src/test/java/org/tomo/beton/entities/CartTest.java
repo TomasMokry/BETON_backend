@@ -1,6 +1,7 @@
 package org.tomo.beton.entities;
 
 import org.junit.jupiter.api.Test;
+import org.tomo.beton.excetions.InvalidDiscountException;
 import org.tomo.beton.excetions.ProductOutOfStockException;
 
 import java.math.BigDecimal;
@@ -130,6 +131,83 @@ class CartTest {
     @Test
     void getTotalPrice_emptyCart_isZero() {
         assertThat(new Cart().getTotalPrice()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void itemDiscount_reducesItemAndCartTotal() {
+        var cart = new Cart();
+        var vase = product(1, "Vase", "100", 5);
+        cart.addItem(vase);
+        cart.addItem(vase);
+        cart.addItem(product(2, "Tray", "20", 5));
+
+        cart.updateItemDiscount(1L, 15);
+
+        assertThat(cart.getItem(1L).getSubtotalPrice()).isEqualByComparingTo("200.00");
+        assertThat(cart.getItem(1L).getTotalPrice()).isEqualByComparingTo("170.00");
+        assertThat(cart.getTotalPrice()).isEqualByComparingTo("190.00");
+    }
+
+    @Test
+    void cartDiscount_appliesToSubtotalAfterItemDiscounts() {
+        var cart = new Cart();
+        cart.addItem(product(1, "Vase", "100", 5));
+        cart.addItem(product(2, "Tray", "50", 5));
+        cart.updateItemDiscount(1L, 10);
+
+        cart.updateDiscount(20);
+
+        assertThat(cart.getSubtotalPrice()).isEqualByComparingTo("140.00");
+        assertThat(cart.getDiscountAmount()).isEqualByComparingTo("28.00");
+        assertThat(cart.getTotalPrice()).isEqualByComparingTo("112.00");
+    }
+
+    @Test
+    void giftDiscount_makesItemAndCartFree() {
+        var cart = new Cart();
+        cart.addItem(product(1, "Vase", "100", 5));
+        cart.addItem(product(2, "Tray", "50", 5));
+
+        cart.updateItemDiscount(2L, 100);
+        assertThat(cart.getItem(2L).getTotalPrice()).isEqualByComparingTo("0");
+        assertThat(cart.getTotalPrice()).isEqualByComparingTo("100.00");
+
+        cart.updateDiscount(100);
+        assertThat(cart.getTotalPrice()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    void discount_roundsToTwoDecimals() {
+        var cart = new Cart();
+        cart.addItem(product(1, "Candle", "33.33", 5));
+
+        cart.updateItemDiscount(1L, 5);
+
+        assertThat(cart.getItem(1L).getTotalPrice()).isEqualByComparingTo("31.66");
+    }
+
+    @Test
+    void discount_notAllowedValue_throws() {
+        var cart = new Cart();
+        cart.addItem(product(1, "Vase", "100", 5));
+
+        assertThatThrownBy(() -> cart.updateDiscount(7))
+                .isInstanceOf(InvalidDiscountException.class);
+        assertThatThrownBy(() -> cart.updateItemDiscount(1L, 101))
+                .isInstanceOf(InvalidDiscountException.class);
+        assertThat(cart.getDiscountPercent()).isZero();
+        assertThat(cart.getItem(1L).getDiscountPercent()).isZero();
+    }
+
+    @Test
+    void clear_resetsCartDiscount() {
+        var cart = new Cart();
+        cart.addItem(product(1, "Vase", "100", 5));
+        cart.updateDiscount(10);
+
+        cart.clear();
+
+        assertThat(cart.getDiscountPercent()).isZero();
     }
 
     @Test

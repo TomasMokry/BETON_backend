@@ -31,6 +31,12 @@ public class Order {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "subtotal_price")
+    private BigDecimal subtotalPrice;
+
+    @Column(name = "discount_percent")
+    private Integer discountPercent = 0;
+
     @Column(name = "total_price")
     private BigDecimal totalPrice;
 
@@ -41,10 +47,12 @@ public class Order {
         var order = new Order();
         order.setCustomer(customer);
         order.setMethod(PaymentMethod.valueOf(paymentMethod));
+        order.setSubtotalPrice(cart.getSubtotalPrice());
+        order.setDiscountPercent(cart.getDiscountPercent());
         order.setTotalPrice(cart.getTotalPrice());
 
         cart.getItems().forEach(item -> {
-            var orderItem = new OrderItem(order, item.getProduct(), item.getQuantity());
+            var orderItem = new OrderItem(order, item.getProduct(), item.getQuantity(), item.getDiscountPercent());
             order.items.add(orderItem);
         });
 

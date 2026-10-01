@@ -3,6 +3,7 @@ package org.tomo.beton.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.tomo.beton.dtos.DiscountPercent;
 import org.tomo.beton.excetions.ProductOutOfStockException;
 
 import java.math.BigDecimal;
@@ -29,10 +30,27 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<CartItem> items = new LinkedHashSet<>();
 
-    public BigDecimal getTotalPrice() {
+    @Column(name = "discount_percent")
+    private Integer discountPercent = 0;
+
+    /** Sum of item totals, after item discounts but before the cart discount. */
+    public BigDecimal getSubtotalPrice() {
         return items.stream()
                 .map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getDiscountAmount() {
+        return DiscountPercent.discountOf(getSubtotalPrice(), discountPercent);
+    }
+
+    public BigDecimal getTotalPrice() {
+        return getSubtotalPrice().subtract(getDiscountAmount());
+    }
+
+    public void updateDiscount(Integer percent) {
+        DiscountPercent.validate(percent);
+        this.discountPercent = percent;
     }
 
     public CartItem getItem(Long productId) {
@@ -71,6 +89,11 @@ public class Cart {
         cartItem.setQuantity(quantity);
     }
 
+    public void updateItemDiscount(Long productId, Integer percent) {
+        DiscountPercent.validate(percent);
+        getItem(productId).setDiscountPercent(percent);
+    }
+
     public void removeItem(Long productId) {
         var cartItem = getItem(productId);
         if (cartItem != null) {
@@ -90,6 +113,7 @@ public class Cart {
 
     public void clear() {
         items.clear();
+        discountPercent = 0;
     }
 
     public boolean isEmpty() {

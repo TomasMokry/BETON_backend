@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.tomo.beton.dtos.*;
 import org.tomo.beton.excetions.CartNotFoundException;
+import org.tomo.beton.excetions.InvalidDiscountException;
 import org.tomo.beton.excetions.ProductNotFoundException;
 import org.tomo.beton.excetions.ProductOutOfStockException;
 import org.tomo.beton.service.CartService;
@@ -53,6 +54,23 @@ public class CartController {
         return cartService.updateItem(cartId, productId, request.getQuantity());
     }
 
+    @PutMapping("/{cartId}/items/{productId}/discount")
+    public CartItemDto updateItemDiscount(
+            @PathVariable("cartId") UUID cartId,
+            @PathVariable("productId") Long productId,
+            @Valid @RequestBody UpdateDiscountRequest request
+    ) {
+        return cartService.updateItemDiscount(cartId, productId, request.getDiscountPercent());
+    }
+
+    @PutMapping("/{cartId}/discount")
+    public CartDto updateCartDiscount(
+            @PathVariable("cartId") UUID cartId,
+            @Valid @RequestBody UpdateDiscountRequest request
+    ) {
+        return cartService.updateCartDiscount(cartId, request.getDiscountPercent());
+    }
+
     @DeleteMapping("/{cartId}/items/{productId}")
     public ResponseEntity<?> removeItem(
             @PathVariable("cartId") UUID cartId,
@@ -78,6 +96,11 @@ public class CartController {
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ErrorDto> handleProductNotFound() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDto("Product not found."));
+    }
+
+    @ExceptionHandler(InvalidDiscountException.class)
+    public ResponseEntity<ErrorDto> handleInvalidDiscount() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDto("Invalid discount percent."));
     }
 
     @ExceptionHandler(ProductOutOfStockException.class)

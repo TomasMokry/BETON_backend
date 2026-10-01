@@ -3,6 +3,7 @@ package org.tomo.beton.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.tomo.beton.dtos.DiscountPercent;
 
 import java.math.BigDecimal;
 
@@ -27,7 +28,14 @@ public class CartItem {
     @Column(name = "quantity")
     private Integer quantity;
 
-    public BigDecimal getTotalPrice() {
+    @Column(name = "discount_percent")
+    private Integer discountPercent = 0;
+
+    public BigDecimal getSubtotalPrice() {
         return product.getPrice().multiply(BigDecimal.valueOf(quantity));
+    }
+
+    public BigDecimal getTotalPrice() {
+        return DiscountPercent.apply(getSubtotalPrice(), discountPercent);
     }
 }

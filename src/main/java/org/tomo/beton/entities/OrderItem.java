@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.tomo.beton.dtos.DiscountPercent;
 
 import java.math.BigDecimal;
 
@@ -32,14 +33,18 @@ public class OrderItem {
     @Column(name = "quantity")
     private Integer quantity;
 
+    @Column(name = "discount_percent")
+    private Integer discountPercent = 0;
+
     @Column(name = "total_price")
     private BigDecimal totalPrice;
 
-    public OrderItem(Order order, Product product, Integer quantity) {
+    public OrderItem(Order order, Product product, Integer quantity, Integer discountPercent) {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
+        this.discountPercent = discountPercent;
         this.unitPrice = product.getPrice();
-        this.totalPrice = unitPrice.multiply(BigDecimal.valueOf(quantity));
+        this.totalPrice = DiscountPercent.apply(unitPrice.multiply(BigDecimal.valueOf(quantity)), discountPercent);
     }
 }

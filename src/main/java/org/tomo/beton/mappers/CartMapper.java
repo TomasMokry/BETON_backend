@@ -12,9 +12,12 @@ import org.tomo.beton.entities.CartItem;
 )
 public interface CartMapper {
     @Mapping(target = "items", source = "items")
+    @Mapping(target = "subtotalPrice", expression = "java(cart.getSubtotalPrice())")
+    @Mapping(target = "discountAmount", expression = "java(cart.getDiscountAmount())")
     @Mapping(target = "totalPrice", expression = "java(cart.getTotalPrice())")
     CartDto toDto(Cart cart);
 
+    @Mapping(target = "subtotalPrice", expression = "java(cartItem.getSubtotalPrice())")
     @Mapping(target = "totalPrice", expression = "java(cartItem.getTotalPrice())")
     CartItemDto toDto(CartItem cartItem);
 }

@@ -72,6 +72,37 @@ public class CartService {
         return cartMapper.toDto(cartItem);
     }
 
+    public CartItemDto updateItemDiscount(UUID cartId, Long productId, Integer discountPercent) {
+        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+        if (cart == null) {
+            throw new CartNotFoundException();
+        }
+
+        var cartItem = cart.getItem(productId);
+        if (cartItem == null) {
+            throw new ProductNotFoundException();
+        }
+
+        cart.updateItemDiscount(productId, discountPercent);
+
+        cartRepository.save(cart);
+
+        return cartMapper.toDto(cartItem);
+    }
+
+    public CartDto updateCartDiscount(UUID cartId, Integer discountPercent) {
+        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+        if (cart == null) {
+            throw new CartNotFoundException();
+        }
+
+        cart.updateDiscount(discountPercent);
+
+        cartRepository.save(cart);
+
+        return cartMapper.toDto(cart);
+    }
+
     public void removeItem(UUID cartId, Long productId) {
         var cart = cartRepository.getCartWithItems(cartId).orElse(null);
         if (cart == null) {

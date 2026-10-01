@@ -8,5 +8,7 @@ import java.math.BigDecimal;
 public class CartItemDto {
     private CartProductDto product;
     private int quantity;
+    private BigDecimal subtotalPrice;
+    private int discountPercent;
     private BigDecimal totalPrice;
 }

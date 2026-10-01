@@ -12,5 +12,7 @@ public class OrderDto {
     private String method;
     private LocalDateTime createdAt;
     private List<OrderItemDto> items;
+    private BigDecimal subtotalPrice;
+    private int discountPercent;
     private BigDecimal totalPrice;
 }

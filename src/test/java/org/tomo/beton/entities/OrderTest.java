@@ -48,6 +48,33 @@ class OrderTest {
     }
 
     @Test
+    void fromCart_copiesDiscounts() {
+        var cart = new Cart();
+        cart.addItem(product(1, "Vase", "100"));
+        cart.addItem(product(2, "Tray", "50"));
+        cart.updateItemDiscount(1L, 10);
+        cart.updateItemDiscount(2L, 100);
+        cart.updateDiscount(5);
+
+        var order = Order.fromCart(cart, "CASH", user(1));
+
+        assertThat(order.getSubtotalPrice()).isEqualByComparingTo("90.00");
+        assertThat(order.getDiscountPercent()).isEqualTo(5);
+        assertThat(order.getTotalPrice()).isEqualByComparingTo("85.50");
+
+        var vaseItem = order.getItems().stream()
+                .filter(i -> i.getProduct().getId().equals(1L)).findFirst().orElseThrow();
+        assertThat(vaseItem.getUnitPrice()).isEqualByComparingTo("100");
+        assertThat(vaseItem.getDiscountPercent()).isEqualTo(10);
+        assertThat(vaseItem.getTotalPrice()).isEqualByComparingTo("90.00");
+
+        var trayItem = order.getItems().stream()
+                .filter(i -> i.getProduct().getId().equals(2L)).findFirst().orElseThrow();
+        assertThat(trayItem.getDiscountPercent()).isEqualTo(100);
+        assertThat(trayItem.getTotalPrice()).isEqualByComparingTo("0");
+    }
+
+    @Test
     void fromCart_unknownPaymentMethod_throws() {
         var cart = new Cart();
         cart.addItem(product(1, "Vase", "100"));

@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.tomo.beton.dtos.AddItemToCartRequest;
 import org.tomo.beton.dtos.UpdateCartItemRequest;
+import org.tomo.beton.dtos.UpdateDiscountRequest;
 import org.tomo.beton.entities.Category;
 import org.tomo.beton.entities.Product;
 import org.tomo.beton.support.AbstractE2ETest;
@@ -51,6 +52,12 @@ class CartE2ETest extends AbstractE2ETest {
     private String quantity(int quantity) throws Exception {
         var request = new UpdateCartItemRequest();
         request.setQuantity(quantity);
+        return json(request);
+    }
+
+    private String discount(Integer percent) throws Exception {
+        var request = new UpdateDiscountRequest();
+        request.setDiscountPercent(percent);
         return json(request);
     }
 
@@ -243,5 +250,96 @@ class CartE2ETest extends AbstractE2ETest {
     void clearCart_unknownCart_returns404() throws Exception {
         mockMvc.perform(delete("/carts/" + UUID.randomUUID() + "/items"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateItemDiscount_reducesItemTotalAndIsPersisted() throws Exception {
+        var cartId = createCart();
+        addItem(cartId, vase.getId());
+        addItem(cartId, bowl.getId());
+
+        mockMvc.perform(put("/carts/" + cartId + "/items/" + vase.getId() + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(discount(10)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.discountPercent").value(10))
+                .andExpect(jsonPath("$.subtotalPrice").value(100.00))
+                .andExpect(jsonPath("$.totalPrice").value(90.00));
+
+        mockMvc.perform(get("/carts/" + cartId))
+                .andExpect(jsonPath("$.items[1].product.name").value("Vase"))
+                .andExpect(jsonPath("$.items[1].discountPercent").value(10))
+                .andExpect(jsonPath("$.totalPrice").value(115.50));
+    }
+
+    @Test
+    void updateCartDiscount_appliesToTotalAndIsPersisted() throws Exception {
+        var cartId = createCart();
+        addItem(cartId, vase.getId());
+
+        mockMvc.perform(put("/carts/" + cartId + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(discount(25)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.discountPercent").value(25))
+                .andExpect(jsonPath("$.subtotalPrice").value(100.00))
+                .andExpect(jsonPath("$.discountAmount").value(25.00))
+                .andExpect(jsonPath("$.totalPrice").value(75.00));
+
+        mockMvc.perform(get("/carts/" + cartId))
+                .andExpect(jsonPath("$.discountPercent").value(25))
+                .andExpect(jsonPath("$.totalPrice").value(75.00));
+    }
+
+    @Test
+    void updateCartDiscount_gift_makesTotalZero() throws Exception {
+        var cartId = createCart();
+        addItem(cartId, vase.getId());
+
+        mockMvc.perform(put("/carts/" + cartId + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(discount(100)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalPrice").value(0.0));
+    }
+
+    @Test
+    void updateDiscount_notAllowedValue_returns400() throws Exception {
+        var cartId = createCart();
+        addItem(cartId, vase.getId());
+
+        mockMvc.perform(put("/carts/" + cartId + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(discount(7)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid discount percent."));
+
+        mockMvc.perform(put("/carts/" + cartId + "/items/" + vase.getId() + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(discount(101)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid discount percent."));
+    }
+
+    @Test
+    void updateDiscount_missingValue_returns400() throws Exception {
+        var cartId = createCart();
+
+        mockMvc.perform(put("/carts/" + cartId + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(discount(null)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.discountPercent").value("Discount percent must be provided."));
+    }
+
+    @Test
+    void updateItemDiscount_productNotInCart_returns400() throws Exception {
+        var cartId = createCart();
+
+        mockMvc.perform(put("/carts/" + cartId + "/items/" + vase.getId() + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(discount(10)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Product not found."));
     }
 }
