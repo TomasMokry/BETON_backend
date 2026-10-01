@@ -15,4 +15,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select p from Product p")
     @EntityGraph(attributePaths = "category")
     List<Product> findAllWithCategory();
+
+    // Containing escapes LIKE wildcards (% and _) in the search text
+    @EntityGraph(attributePaths = "category")
+    List<Product> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
+
+    @EntityGraph(attributePaths = "category")
+    List<Product> findByNameContainingIgnoreCaseAndCategoryIdOrderByNameAsc(String name, Byte categoryId);
 }

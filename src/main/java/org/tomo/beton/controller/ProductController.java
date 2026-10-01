@@ -41,6 +41,24 @@ public class ProductController {
         return products.stream().map(productMapper::toDto).toList();
     }
 
+    @GetMapping("/search")
+    public List<ProductDto> searchProducts(
+            @RequestParam(name = "q", required = false) String query,
+            @RequestParam(name = "categoryId", required = false) Byte categoryId
+    ) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        var name = query.trim();
+        List<Product> products;
+        if (categoryId != null) {
+            products = productRepository.findByNameContainingIgnoreCaseAndCategoryIdOrderByNameAsc(name, categoryId);
+        } else {
+            products = productRepository.findByNameContainingIgnoreCaseOrderByNameAsc(name);
+        }
+        return products.stream().map(productMapper::toDto).toList();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getProductById(@PathVariable Long id) {
         var product = productRepository.findById(id).orElse(null);
