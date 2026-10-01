@@ -64,10 +64,10 @@ public class UserService {
     public void changePassword(Long userId, ChangePasswordRequest request) {
         var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        if (!user.getPassword().equals(request.getOldPassword())){
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())){
             throw new WrongPasswordException();
         }
-        user.setPassword(request.getNewPassword());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
 }

@@ -10,7 +10,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.tomo.beton.dtos.ErrorDto;
 import org.tomo.beton.dtos.ProductDto;
 import org.tomo.beton.entities.Product;
-import org.tomo.beton.excetions.CartNotFoundException;
 import org.tomo.beton.excetions.CategoryNotFoundException;
 import org.tomo.beton.excetions.ProductNotFoundException;
 import org.tomo.beton.mappers.ProductMapper;
@@ -76,7 +75,7 @@ public class ProductController {
     ) {
         var category = categoryRepository.findById(request.getCategoryId()).orElse(null);
         if (category == null) {
-            throw new CartNotFoundException();
+            throw new CategoryNotFoundException();
         }
 
         var product = productRepository.findById(id).orElse(null);
@@ -96,11 +95,6 @@ public class ProductController {
             throw new ProductNotFoundException();
         }
         productRepository.delete(product);
-    }
-
-    @ExceptionHandler(CartNotFoundException.class)
-    public ResponseEntity<ErrorDto> handleCartNotFound() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDto("Cart not found."));
     }
 
     @ExceptionHandler(ProductNotFoundException.class)
