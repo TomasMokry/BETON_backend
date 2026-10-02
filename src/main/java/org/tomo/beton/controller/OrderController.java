@@ -21,16 +21,18 @@ public class OrderController {
 
     @GetMapping
     public List<OrderDto> getAllOrders(
-            @RequestParam(name = "marketPlaceId", required = false) String marketPlaceId
+            @RequestParam(name = "marketPlaceId", required = false) String marketPlaceId,
+            @RequestParam(name = "userId", required = false) Long userId
     ) {
-        return orderService.getAllOrders(marketPlaceId);
+        return orderService.getAllOrders(marketPlaceId, userId);
     }
 
     @GetMapping("/summary")
     public List<OrderSummaryDto> getSummary(
-            @RequestParam(name = "marketPlaceId", required = false) String marketPlaceId
+            @RequestParam(name = "marketPlaceId", required = false) String marketPlaceId,
+            @RequestParam(name = "userId", required = false) Long userId
     ) {
-        return orderService.getSummary(marketPlaceId);
+        return orderService.getSummary(marketPlaceId, userId);
     }
 
     @GetMapping("/{orderId}")

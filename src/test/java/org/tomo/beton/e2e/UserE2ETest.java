@@ -70,7 +70,7 @@ class UserE2ETest extends AbstractE2ETest {
 
     @Test
     void getAllUsers_sortedByEmail() throws Exception {
-        var token = tokenFor("b@mail.com", Role.USER);
+        var token = tokenFor("b@mail.com", Role.ADMIN);
         createUser("a@mail.com", "secret1", Role.USER);
         createUser("c@mail.com", "secret1", Role.USER);
 
@@ -83,6 +83,16 @@ class UserE2ETest extends AbstractE2ETest {
     }
 
     @Test
+    void getAllUsers_asUser_returns403() throws Exception {
+        var token = tokenFor("tom@mail.com", Role.USER);
+
+        mockMvc.perform(get("/users").with(bearer(token)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/users/1").with(bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void getAllUsers_withoutToken_returns401() throws Exception {
         mockMvc.perform(get("/users"))
                 .andExpect(status().isUnauthorized());
@@ -90,7 +100,7 @@ class UserE2ETest extends AbstractE2ETest {
 
     @Test
     void getUser_existing_returnsUser() throws Exception {
-        var token = tokenFor("tom@mail.com", Role.USER);
+        var token = tokenFor("tom@mail.com", Role.ADMIN);
 
         mockMvc.perform(get("/users/1").with(bearer(token)))
                 .andExpect(status().isOk())
@@ -99,7 +109,7 @@ class UserE2ETest extends AbstractE2ETest {
 
     @Test
     void getUser_missing_returns404() throws Exception {
-        var token = tokenFor("tom@mail.com", Role.USER);
+        var token = tokenFor("tom@mail.com", Role.ADMIN);
 
         mockMvc.perform(get("/users/999").with(bearer(token)))
                 .andExpect(status().isNotFound());

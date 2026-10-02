@@ -47,10 +47,51 @@ class OrderServiceTest {
         var order = orderOf(currentUser);
         var dto = new OrderDto();
         when(authService.getCurrentUser()).thenReturn(currentUser);
-        when(orderRepository.getOrdersByCustomer(currentUser)).thenReturn(List.of(order));
+        when(orderRepository.findFiltered(1L, false, false, null)).thenReturn(List.of(order));
         when(orderMapper.toDto(order)).thenReturn(dto);
 
-        assertThat(orderService.getAllOrders(null)).containsExactly(dto);
+        assertThat(orderService.getAllOrders(null, null)).containsExactly(dto);
+    }
+
+    @Test
+    void getAllOrders_userAsksForOtherUser_throws() {
+        when(authService.getCurrentUser()).thenReturn(currentUser);
+
+        assertThatThrownBy(() -> orderService.getAllOrders(null, 2L))
+                .isInstanceOf(OrderAccessDeniedException.class);
+    }
+
+    @Test
+    void getAllOrders_admin_canFilterByUserAndMarket() {
+        var order = orderOf(otherUser);
+        var dto = new OrderDto();
+        when(authService.isCurrentUserAdmin()).thenReturn(true);
+        when(orderRepository.findFiltered(2L, true, false, 5L)).thenReturn(List.of(order));
+        when(orderMapper.toDto(order)).thenReturn(dto);
+
+        assertThat(orderService.getAllOrders("5", 2L)).containsExactly(dto);
+    }
+
+    @Test
+    void getAllOrders_admin_withoutUser_returnsEveryonesOrders() {
+        var order = orderOf(otherUser);
+        var dto = new OrderDto();
+        when(authService.isCurrentUserAdmin()).thenReturn(true);
+        when(orderRepository.findFiltered(null, true, true, null)).thenReturn(List.of(order));
+        when(orderMapper.toDto(order)).thenReturn(dto);
+
+        assertThat(orderService.getAllOrders("none", null)).containsExactly(dto);
+    }
+
+    @Test
+    void getOrder_admin_canOpenOtherUsersOrder() {
+        var order = orderOf(otherUser);
+        var dto = new OrderDto();
+        when(orderRepository.getOrderWithItems(10L)).thenReturn(Optional.of(order));
+        when(authService.isCurrentUserAdmin()).thenReturn(true);
+        when(orderMapper.toDto(order)).thenReturn(dto);
+
+        assertThat(orderService.getOrder(10L)).isSameAs(dto);
     }
 
     @Test

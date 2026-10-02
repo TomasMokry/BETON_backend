@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
 
 @AllArgsConstructor
 @Service
@@ -27,22 +26,51 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final AuthService authService;
 
-    public List<OrderDto> getAllOrders(String marketPlaceId) {
-        var user = authService.getCurrentUser();
+    /** Parsed marketPlaceId request parameter. */
+    private record MarketFilter(boolean filterMarket, boolean noMarket, Long marketPlaceId) {
+        static MarketFilter parse(String marketPlaceId) {
+            if (marketPlaceId == null || marketPlaceId.isBlank()) {
+                return new MarketFilter(false, false, null);
+            }
+            if (NO_MARKET_PLACE.equals(marketPlaceId)) {
+                return new MarketFilter(true, true, null);
+            }
+            return new MarketFilter(true, false, Long.valueOf(marketPlaceId));
+        }
+    }
 
-        var orders = marketPlaceId == null || marketPlaceId.isBlank()
-                ? orderRepository.getOrdersByCustomer(user)
-                : NO_MARKET_PLACE.equals(marketPlaceId)
-                    ? orderRepository.getOrdersByCustomerWithoutMarketPlace(user)
-                    : orderRepository.getOrdersByCustomerAndMarketPlace(user, Long.valueOf(marketPlaceId));
+    /**
+     * Admins may see every customer's orders (or one customer's via userId);
+     * other users always see only their own and may not ask for someone else's.
+     */
+    private Long resolveCustomerId(Long requestedUserId) {
+        if (authService.isCurrentUserAdmin()) {
+            return requestedUserId;
+        }
+        var currentUserId = authService.getCurrentUser().getId();
+        if (requestedUserId != null && !requestedUserId.equals(currentUserId)) {
+            throw new OrderAccessDeniedException();
+        }
+        return currentUserId;
+    }
+
+    public List<OrderDto> getAllOrders(String marketPlaceId, Long userId) {
+        var customerId = resolveCustomerId(userId);
+        var market = MarketFilter.parse(marketPlaceId);
+
+        var orders = orderRepository.findFiltered(
+                customerId, market.filterMarket(), market.noMarket(), market.marketPlaceId());
         return orders.stream().map(orderMapper::toDto).toList();
     }
 
-    public List<OrderSummaryDto> getSummary(String marketPlaceId) {
-        var user = authService.getCurrentUser();
+    public List<OrderSummaryDto> getSummary(String marketPlaceId, Long userId) {
+        var customerId = resolveCustomerId(userId);
+        var market = MarketFilter.parse(marketPlaceId);
 
         var summaries = new LinkedHashMap<Long, OrderSummaryDto>();
-        for (var row : orderRepository.summarizeByMarketPlace(user)) {
+        var rows = orderRepository.summarizeByMarketPlace(
+                customerId, market.filterMarket(), market.noMarket(), market.marketPlaceId());
+        for (var row : rows) {
             var id = (Long) row[0];
             var summary = summaries.computeIfAbsent(id, key -> new OrderSummaryDto(
                     key, (String) row[1], 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
@@ -59,10 +87,6 @@ public class OrderService {
         }
 
         var result = new ArrayList<>(summaries.values());
-        if (marketPlaceId != null && !marketPlaceId.isBlank()) {
-            Long filterId = NO_MARKET_PLACE.equals(marketPlaceId) ? null : Long.valueOf(marketPlaceId);
-            result.removeIf(summary -> !Objects.equals(summary.getMarketPlaceId(), filterId));
-        }
         result.sort(Comparator.comparing(OrderSummaryDto::getTotal).reversed());
         return result;
     }
@@ -72,8 +96,7 @@ public class OrderService {
                 .getOrderWithItems(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
-        var user = authService.getCurrentUser();
-        if (!order.isPlacedBy(user)) {
+        if (!authService.isCurrentUserAdmin() && !order.isPlacedBy(authService.getCurrentUser())) {
             throw new OrderAccessDeniedException();
         }
 
