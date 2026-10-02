@@ -19,12 +19,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductE2ETest extends AbstractE2ETest {
 
     private String token;
+    private String userToken;
     private Category vases;
     private Category bowls;
 
     @BeforeEach
     void setUp() throws Exception {
-        token = tokenFor("tom@mail.com", Role.USER);
+        token = tokenFor("admin@mail.com", Role.ADMIN);
+        userToken = tokenFor("tom@mail.com", Role.USER);
         vases = createCategory("Vases");
         bowls = createCategory("Bowls");
     }
@@ -72,6 +74,32 @@ class ProductE2ETest extends AbstractE2ETest {
                 .andExpect(jsonPath("$[0].name").value("Vase A"))
                 .andExpect(jsonPath("$[1].name").value("Vase B"))
                 .andExpect(jsonPath("$[0].categoryId").value(vases.getId().intValue()));
+    }
+
+    @Test
+    void getProducts_asUser_returns200() throws Exception {
+        mockMvc.perform(get("/products").with(bearer(userToken)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void manageProducts_asUser_returns403() throws Exception {
+        var product = createProduct("Vase", vases, "10", 1);
+
+        mockMvc.perform(post("/products")
+                        .with(bearer(userToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(productDto(vases.getId()))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(put("/products/" + product.getId())
+                        .with(bearer(userToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(productDto(vases.getId()))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/products/" + product.getId()).with(bearer(userToken)))
+                .andExpect(status().isForbidden());
+
+        assertThat(productRepository.count()).isEqualTo(1);
     }
 
     @Test

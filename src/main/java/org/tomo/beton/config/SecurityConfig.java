@@ -51,6 +51,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/users/**").permitAll()
                         // listing/reading users is admin-only; /users/me/marketplace is not matched by /users/*
                         .requestMatchers(HttpMethod.GET, "/users", "/users/*").hasRole(Role.ADMIN.name())
+                        // managing products is admin-only; reading them stays open to every logged-in user
+                        .requestMatchers(HttpMethod.POST, "/products/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, "/products/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/logout").permitAll()
