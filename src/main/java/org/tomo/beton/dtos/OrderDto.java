@@ -10,6 +10,7 @@ import java.util.List;
 public class OrderDto {
     private Long id;
     private String method;
+    private MarketPlaceSummaryDto marketPlace;
     private LocalDateTime createdAt;
     private List<OrderItemDto> items;
     private BigDecimal subtotalPrice;

@@ -32,6 +32,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @ManyToOne
+    @JoinColumn(name = "current_marketplace_id")
+    private MarketPlace currentMarketPlace;
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + "(" +

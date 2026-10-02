@@ -28,6 +28,10 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
 
+    @ManyToOne
+    @JoinColumn(name = "marketplace_id")
+    private MarketPlace marketPlace;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -46,6 +50,7 @@ public class Order {
     public static Order fromCart(Cart cart, String paymentMethod, User customer) {
         var order = new Order();
         order.setCustomer(customer);
+        order.setMarketPlace(customer.getCurrentMarketPlace());
         order.setMethod(PaymentMethod.valueOf(paymentMethod));
         order.setSubtotalPrice(cart.getSubtotalPrice());
         order.setDiscountPercent(cart.getDiscountPercent());
@@ -60,6 +65,6 @@ public class Order {
     }
 
     public boolean isPlacedBy(User customer) {
-        return this.customer.equals(customer);
+        return customer != null && this.customer.getId().equals(customer.getId());
     }
 }

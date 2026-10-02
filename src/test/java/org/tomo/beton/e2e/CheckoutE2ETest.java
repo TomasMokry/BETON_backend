@@ -28,7 +28,6 @@ class CheckoutE2ETest extends AbstractE2ETest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // AuthService currently resolves the customer as user id 1, so the logged-in user is created first
         token = tokenFor("tom@mail.com", Role.USER);
         vase = createProduct("Vase", createCategory("Vases"), "100.00", 5);
     }

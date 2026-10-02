@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public abstract class AbstractE2ETest {
 
     private static final List<String> TABLES =
-            List.of("order_items", "orders", "cart_items", "carts", "products", "categories", "users");
+            List.of("order_items", "orders", "cart_items", "carts", "products", "categories", "users", "marketplaces");
 
     @Autowired
     protected MockMvc mockMvc;

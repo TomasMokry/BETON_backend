@@ -29,7 +29,6 @@ class OrderE2ETest extends AbstractE2ETest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // AuthService currently resolves the customer as user id 1, so the logged-in user is created first
         token = tokenFor("tom@mail.com", Role.USER);
         otherUser = createUser("other@mail.com", "password123", Role.USER);
         var category = createCategory("Mixed");

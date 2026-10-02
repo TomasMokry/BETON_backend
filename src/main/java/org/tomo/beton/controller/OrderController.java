@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tomo.beton.dtos.ErrorDto;
 import org.tomo.beton.dtos.OrderDto;
+import org.tomo.beton.dtos.OrderSummaryDto;
 import org.tomo.beton.excetions.OrderAccessDeniedException;
 import org.tomo.beton.excetions.OrderNotFoundException;
 import org.tomo.beton.service.OrderService;
@@ -19,13 +20,27 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public List<OrderDto> getAllOrders() {
-        return orderService.getAllOrders();
+    public List<OrderDto> getAllOrders(
+            @RequestParam(name = "marketPlaceId", required = false) String marketPlaceId
+    ) {
+        return orderService.getAllOrders(marketPlaceId);
+    }
+
+    @GetMapping("/summary")
+    public List<OrderSummaryDto> getSummary(
+            @RequestParam(name = "marketPlaceId", required = false) String marketPlaceId
+    ) {
+        return orderService.getSummary(marketPlaceId);
     }
 
     @GetMapping("/{orderId}")
     public OrderDto getOrder(@PathVariable("orderId") Long orderId) {
         return orderService.getOrder(orderId);
+    }
+
+    @ExceptionHandler(NumberFormatException.class)
+    public ResponseEntity<ErrorDto> handleInvalidMarketPlaceId() {
+        return ResponseEntity.badRequest().body(new ErrorDto("Invalid marketPlaceId"));
     }
 
     @ExceptionHandler(OrderNotFoundException.class)

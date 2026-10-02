@@ -50,7 +50,7 @@ class OrderServiceTest {
         when(orderRepository.getOrdersByCustomer(currentUser)).thenReturn(List.of(order));
         when(orderMapper.toDto(order)).thenReturn(dto);
 
-        assertThat(orderService.getAllOrders()).containsExactly(dto);
+        assertThat(orderService.getAllOrders(null)).containsExactly(dto);
     }
 
     @Test
