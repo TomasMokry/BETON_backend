@@ -102,11 +102,12 @@ public class Cart {
         }
     }
 
+    /** Items in the order they were added, newest first (ids grow with each new item; unsaved ones are newest). */
     public Set<CartItem> getItems() {
         return items.stream()
                 .sorted(Comparator.comparing(
-                        item -> item.getProduct().getName(),
-                        String.CASE_INSENSITIVE_ORDER
+                        CartItem::getId,
+                        Comparator.nullsFirst(Comparator.<Long>reverseOrder())
                 ))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }

@@ -211,14 +211,26 @@ class CartTest {
     }
 
     @Test
-    void getItems_sortedByProductNameIgnoringCase() {
+    void getItems_newestAddedFirst() {
         var cart = new Cart();
-        cart.addItem(product(1, "vase", "1", 5));
-        cart.addItem(product(2, "Candle", "1", 5));
-        cart.addItem(product(3, "bowl", "1", 5));
+        // ids are assigned by the database in the order items are added
+        cart.addItem(product(1, "vase", "1", 5)).setId(10L);
+        cart.addItem(product(2, "Candle", "1", 5)).setId(11L);
+        cart.addItem(product(3, "bowl", "1", 5)).setId(12L);
 
         assertThat(cart.getItems())
                 .extracting(item -> item.getProduct().getName())
                 .containsExactly("bowl", "Candle", "vase");
+    }
+
+    @Test
+    void getItems_unsavedItemComesFirst() {
+        var cart = new Cart();
+        cart.addItem(product(1, "Vase", "1", 5)).setId(10L);
+        cart.addItem(product(2, "Bowl", "1", 5));
+
+        assertThat(cart.getItems())
+                .extracting(item -> item.getProduct().getName())
+                .containsExactly("Bowl", "Vase");
     }
 }

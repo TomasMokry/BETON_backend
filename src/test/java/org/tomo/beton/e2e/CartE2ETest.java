@@ -147,18 +147,31 @@ class CartE2ETest extends AbstractE2ETest {
     }
 
     @Test
-    void getCart_returnsItemsSortedByNameWithTotal() throws Exception {
+    void getCart_returnsItemsNewestFirstWithTotal() throws Exception {
         var cartId = createCart();
-        addItem(cartId, vase.getId());
         addItem(cartId, bowl.getId());
+        addItem(cartId, vase.getId());
 
         mockMvc.perform(get("/carts/" + cartId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(cartId))
                 .andExpect(jsonPath("$.items.length()").value(2))
-                .andExpect(jsonPath("$.items[0].product.name").value("Bowl"))
-                .andExpect(jsonPath("$.items[1].product.name").value("Vase"))
+                .andExpect(jsonPath("$.items[0].product.name").value("Vase"))
+                .andExpect(jsonPath("$.items[1].product.name").value("Bowl"))
                 .andExpect(jsonPath("$.totalPrice").value(125.50));
+    }
+
+    @Test
+    void getCart_addingSameProductAgain_keepsItsPosition() throws Exception {
+        var cartId = createCart();
+        addItem(cartId, bowl.getId());
+        addItem(cartId, vase.getId());
+        addItem(cartId, bowl.getId());
+
+        mockMvc.perform(get("/carts/" + cartId))
+                .andExpect(jsonPath("$.items[0].product.name").value("Vase"))
+                .andExpect(jsonPath("$.items[1].product.name").value("Bowl"))
+                .andExpect(jsonPath("$.items[1].quantity").value(2));
     }
 
     @Test
