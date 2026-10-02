@@ -81,6 +81,28 @@ public class Cart {
         return cartItem;
     }
 
+    /**
+     * Puts a product into the cart with the given quantity and discount (used when reopening an order).
+     * An existing line for the product is updated in place rather than re-created.
+     */
+    public CartItem restoreItem(Product product, int quantity, int discountPercent) {
+        DiscountPercent.validate(discountPercent);
+        if (quantity < 1 || quantity > product.getAmount()) {
+            throw new ProductOutOfStockException();
+        }
+
+        var cartItem = getItem(product.getId());
+        if (cartItem == null) {
+            cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setCart(this);
+            items.add(cartItem);
+        }
+        cartItem.setQuantity(quantity);
+        cartItem.setDiscountPercent(discountPercent);
+        return cartItem;
+    }
+
     public void updateItemQuantity(Long productId, Integer quantity) {
         var cartItem = getItem(productId);
         if(quantity > cartItem.getProduct().getAmount()){

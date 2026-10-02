@@ -233,4 +233,37 @@ class CartTest {
                 .extracting(item -> item.getProduct().getName())
                 .containsExactly("Bowl", "Vase");
     }
+
+    @Test
+    void restoreItem_newProduct_addsLineWithQuantityAndDiscount() {
+        var cart = new Cart();
+
+        var item = cart.restoreItem(product(1, "Vase", "100", 5), 3, 10);
+
+        assertThat(cart.getItems()).containsExactly(item);
+        assertThat(item.getQuantity()).isEqualTo(3);
+        assertThat(item.getDiscountPercent()).isEqualTo(10);
+    }
+
+    @Test
+    void restoreItem_existingProduct_updatesLineInPlace() {
+        var cart = new Cart();
+        var vase = product(1, "Vase", "100", 5);
+        var existing = cart.addItem(vase);
+
+        var item = cart.restoreItem(vase, 2, 5);
+
+        assertThat(item).isSameAs(existing);
+        assertThat(cart.getItems()).hasSize(1);
+        assertThat(item.getQuantity()).isEqualTo(2);
+        assertThat(item.getDiscountPercent()).isEqualTo(5);
+    }
+
+    @Test
+    void restoreItem_moreThanStock_throws() {
+        var cart = new Cart();
+
+        assertThatThrownBy(() -> cart.restoreItem(product(1, "Vase", "100", 2), 3, 0))
+                .isInstanceOf(ProductOutOfStockException.class);
+    }
 }

@@ -10,8 +10,11 @@ import org.tomo.beton.entities.Order;
 import org.tomo.beton.entities.User;
 import org.tomo.beton.excetions.OrderAccessDeniedException;
 import org.tomo.beton.excetions.OrderNotFoundException;
+import org.tomo.beton.mappers.CartMapper;
 import org.tomo.beton.mappers.OrderMapper;
+import org.tomo.beton.repositories.CartRepository;
 import org.tomo.beton.repositories.OrderRepository;
+import org.tomo.beton.repositories.ProductRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +32,12 @@ class OrderServiceTest {
     private OrderMapper orderMapper;
     @Mock
     private AuthService authService;
+    @Mock
+    private ProductRepository productRepository;
+    @Mock
+    private CartRepository cartRepository;
+    @Mock
+    private CartMapper cartMapper;
     @InjectMocks
     private OrderService orderService;
 
