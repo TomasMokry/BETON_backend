@@ -3,6 +3,7 @@ package org.tomo.beton.service;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.tomo.beton.config.CardFeeConfig;
 import org.tomo.beton.dtos.CheckoutRequest;
 import org.tomo.beton.dtos.CheckoutResponse;
 import org.tomo.beton.entities.Order;
@@ -23,6 +24,7 @@ public class CheckoutService {
     private final ProductRepository productRepository;
     private final AuthService authService;
     private final CartService cartService;
+    private final CardFeeConfig cardFeeConfig;
 
     @Transactional
     public CheckoutResponse checkout(CheckoutRequest request) {
@@ -53,6 +55,8 @@ public class CheckoutService {
                 request.getPaymentMethod(),
                 authService.getCurrentUser()
         );
+
+        order.applyCardFee(cardFeeConfig.getPercent());
 
         orderRepository.save(order);
         cartService.clearCart(cart.getId());

@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.tomo.beton.dtos.PaymentMethod;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -44,6 +45,12 @@ public class Order {
     @Column(name = "total_price")
     private BigDecimal totalPrice;
 
+    @Column(name = "card_fee")
+    private BigDecimal cardFee = BigDecimal.ZERO;
+
+    @Column(name = "net_price")
+    private BigDecimal netPrice;
+
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private Set<OrderItem> items = new LinkedHashSet<>();
 
@@ -55,6 +62,7 @@ public class Order {
         order.setSubtotalPrice(cart.getSubtotalPrice());
         order.setDiscountPercent(cart.getDiscountPercent());
         order.setTotalPrice(cart.getTotalPrice());
+        order.setNetPrice(order.getTotalPrice());
 
         cart.getItems().forEach(item -> {
             var orderItem = new OrderItem(order, item.getProduct(), item.getQuantity(), item.getDiscountPercent());
@@ -62,6 +70,16 @@ public class Order {
         });
 
         return order;
+    }
+
+    /** Deducts the bank fee (percent of the total) for card payments; other methods keep the full total. */
+    public void applyCardFee(BigDecimal percent) {
+        if (method != PaymentMethod.CARD || percent == null || percent.signum() <= 0) {
+            cardFee = BigDecimal.ZERO.setScale(2);
+        } else {
+            cardFee = totalPrice.multiply(percent).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+        netPrice = totalPrice.subtract(cardFee);
     }
 
     public boolean isPlacedBy(User customer) {

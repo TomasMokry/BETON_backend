@@ -91,4 +91,51 @@ class OrderTest {
         assertThat(order.isPlacedBy(user(1))).isTrue();
         assertThat(order.isPlacedBy(user(2))).isFalse();
     }
+
+    private static Order orderOf(String price, String method) {
+        var cart = new Cart();
+        cart.addItem(product(1, "Vase", price));
+        return Order.fromCart(cart, method, user(1));
+    }
+
+    @Test
+    void fromCart_netPriceEqualsTotalWithoutFee() {
+        var order = orderOf("100", "CARD");
+
+        assertThat(order.getCardFee()).isEqualByComparingTo("0");
+        assertThat(order.getNetPrice()).isEqualByComparingTo("100");
+    }
+
+    @Test
+    void applyCardFee_card_deductsRoundedPercentFromTotal() {
+        var order = orderOf("171", "CARD");
+
+        order.applyCardFee(new BigDecimal("1.5"));
+
+        // 171 * 1.5 % = 2.565 -> 2.57
+        assertThat(order.getCardFee()).isEqualByComparingTo("2.57");
+        assertThat(order.getNetPrice()).isEqualByComparingTo("168.43");
+        assertThat(order.getTotalPrice()).isEqualByComparingTo("171");
+    }
+
+    @Test
+    void applyCardFee_cash_hasNoFee() {
+        var order = orderOf("171", "CASH");
+
+        order.applyCardFee(new BigDecimal("1.5"));
+
+        assertThat(order.getCardFee()).isEqualByComparingTo("0");
+        assertThat(order.getNetPrice()).isEqualByComparingTo("171");
+    }
+
+    @Test
+    void applyCardFee_zeroOrMissingPercent_hasNoFee() {
+        var order = orderOf("100", "CARD");
+
+        order.applyCardFee(BigDecimal.ZERO);
+        assertThat(order.getCardFee()).isEqualByComparingTo("0");
+
+        order.applyCardFee(null);
+        assertThat(order.getNetPrice()).isEqualByComparingTo("100");
+    }
 }

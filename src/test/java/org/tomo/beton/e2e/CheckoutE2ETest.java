@@ -110,6 +110,9 @@ class CheckoutE2ETest extends AbstractE2ETest {
         assertThat(order.getCustomer().getId()).isEqualTo(customerId);
         assertThat(order.getMethod()).isEqualTo(PaymentMethod.CARD);
         assertThat(order.getTotalPrice()).isEqualByComparingTo("200.00");
+        // application-test.yaml sets beton.card-fee.percent: 1.5
+        assertThat(order.getCardFee()).isEqualByComparingTo("3.00");
+        assertThat(order.getNetPrice()).isEqualByComparingTo("197.00");
         assertThat(order.getItems()).hasSize(1);
         assertThat(order.getItems().iterator().next().getQuantity()).isEqualTo(2);
 

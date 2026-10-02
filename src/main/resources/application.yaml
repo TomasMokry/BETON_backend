@@ -9,6 +9,10 @@ spring:
     secret: ${JWT_SECRET}
     accessTokenExpiration: 900 # 15m
     refreshTokenExpiration: 604800 # 7d
+beton:
+  card-fee:
+    # Bank fee for card payments in percent of the order total; override with env CARD_FEE_PERCENT
+    percent: ${CARD_FEE_PERCENT:0}
 management:
   endpoints:
     web:

@@ -17,4 +17,6 @@ public class OrderDto {
     private BigDecimal subtotalPrice;
     private int discountPercent;
     private BigDecimal totalPrice;
+    private BigDecimal cardFee;
+    private BigDecimal netPrice;
 }

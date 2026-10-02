@@ -13,3 +13,6 @@ spring:
     show-sql: false
   jwt:
     secret: test-secret-key-that-is-at-least-32-bytes-long!!
+beton:
+  card-fee:
+    percent: 1.5

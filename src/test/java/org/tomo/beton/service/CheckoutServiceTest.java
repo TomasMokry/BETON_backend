@@ -6,6 +6,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.tomo.beton.config.CardFeeConfig;
 import org.tomo.beton.dtos.CheckoutRequest;
 import org.tomo.beton.dtos.PaymentMethod;
 import org.tomo.beton.entities.Cart;
@@ -42,6 +43,8 @@ class CheckoutServiceTest {
     private AuthService authService;
     @Mock
     private CartService cartService;
+    @Mock
+    private CardFeeConfig cardFeeConfig;
     @InjectMocks
     private CheckoutService checkoutService;
 
@@ -116,6 +119,7 @@ class CheckoutServiceTest {
         when(cartRepository.getCartWithItems(cartId)).thenReturn(Optional.of(cart));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(authService.getCurrentUser()).thenReturn(customer);
+        when(cardFeeConfig.getPercent()).thenReturn(new BigDecimal("1.5"));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             order.setId(42L);
@@ -133,6 +137,8 @@ class CheckoutServiceTest {
         assertThat(order.getValue().getCustomer()).isSameAs(customer);
         assertThat(order.getValue().getMethod()).isEqualTo(PaymentMethod.CARD);
         assertThat(order.getValue().getTotalPrice()).isEqualByComparingTo("30");
+        assertThat(order.getValue().getCardFee()).isEqualByComparingTo("0.45");
+        assertThat(order.getValue().getNetPrice()).isEqualByComparingTo("29.55");
 
         verify(cartService).clearCart(cartId);
     }
